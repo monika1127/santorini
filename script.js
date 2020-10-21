@@ -11,6 +11,7 @@ let player1Active = true;
 let currentPlayerId = 1
 let pownPlacementCounter = 0
 let moveAllow
+let gameStarted
 
 const pownSorce={
     1: './icons/SVG/man-player1.svg',
@@ -25,7 +26,6 @@ function changePlayerId(){
 
 function createBoard(){
     let temp = []
-
     for (let i = 0; i<5; i++) {
         temp.push([])
         for (let j=0; j<5; j++) {
@@ -49,7 +49,6 @@ function updateBoard(){
                 <img class="game__pawn" id="${j.pawn.pawnId}" src="${pownSorce[j.pawn.pawnId]}" />
             </div>`}
         }).join('')).join('')
-      console.log(boardHtml)
     gameContainer.innerHTML = boardHtml
 }
 
@@ -72,14 +71,13 @@ function displayGameInstruction (playerId, gamePhase){
 }
 
 
-
 function placePawns(event){
     const tile = event.target
+    if(!tile.classList.contains('tile')) return
     checkIfMoveIsAllowed(tile)
     if(!moveAllow){
         displayGameInstruction(currentPlayerId ,'tileOccupated')
     }else {
-
         const {x,y} = tile.dataset
         const pawn = {pawnId: pownPlacementCounter, postion: {x, y}, player: currentPlayerId}
         pawns.push(pawn)
@@ -108,7 +106,6 @@ function highlitTile(e){
 
 function checkIfMoveIsAllowed(selectedTile){
     board[selectedTile.dataset.x][selectedTile.dataset.y].pawn==null ? moveAllow = true : moveAllow=false
-    console.log(moveAllow)
 }
 
 
@@ -118,7 +115,6 @@ function  pownHighlite (){
     pownPlacementCounter = pownPlacementCounter +1
     pownImages.forEach((image)=> image.id == pownPlacementCounter ? image.classList.add("pown-active"): "")
 }
-
 
 
 // function movePawn(){
@@ -138,15 +134,35 @@ function  pownHighlite (){
 // }
 
 function startGame(){
-    createBoard()
-    drawBoard()
-    window.setTimeout(()=>{
-        displayGameInstruction(currentPlayerId ,'placePawn')
-        pownHighlite()
-        gameContainer.addEventListener('mousemove', highlitTile)
-        gameContainer.addEventListener('click', placePawns)}
-        ,500)
+    if(!gameStarted){
+        gameStarted = true;
+        startGameButton.innerHTML="RE-START GAME"
+        createBoard()
+        drawBoard()
+        window.setTimeout(()=>{
+            displayGameInstruction(currentPlayerId ,'placePawn')
+            pownHighlite()
+            gameContainer.addEventListener('mousemove', highlitTile)
+            gameContainer.addEventListener('click', placePawns)}
+            ,200)
+        } else {
+            reStartGame()
+        }
 }
 
+function reStartGame(){
+pawns = []
+player1Active = true;
+gameStarted = false
+pownPlacementCounter = 0
+currentPlayerId = 1
+moveAllow = true
+gameContainer.innerHTML=""
+pownImages.forEach((pawn)=>{
+    pawn.classList.remove("pown-used")
+    pawn.classList.remove("pown-active")
+})
+startGameButton.innerHTML="START GAME"
+}
 
 startGameButton.addEventListener('click',startGame)
