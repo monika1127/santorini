@@ -42,6 +42,9 @@
 .active-tile {
   background-color: rgba(47, 190, 223, 0.693);
 }
+.active__pawn {
+  background-color: rgba(47, 190, 223, 0.693);
+}
 
 /* player panel styling*/
 .player__panel {
