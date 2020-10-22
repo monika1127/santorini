@@ -115,15 +115,20 @@ function choosePawn() {
 
 
 function highlitPawn(e) {
-    e.target.classList.add('active__pawn')
+    const pawnsOnBoard = gameContainer.querySelectorAll('.game__pawn')
+    pawnsOnBoard.forEach((pawn)=>pawn.classList.remove('active__pawn'))
+
     let choosenPawn
-    pawns.forEach((pawn)=>{
-        if(pawn.pawnId == e.target.id){
+
+
+       pawns.forEach((pawn)=>{
+        if(pawn.pawnId == e.target.id && pawn.player == currentPlayerId){
+        e.target.classList.add('active__pawn')
         choosenPawn = pawn.postion
        return choosenPawn}})
+
     checkIfMoveIsAllowed(choosenPawn)
-    // const {x,y} = pawns.pawnId[e.target.id]
-    // console.log(x,y)
+
 
 
 }
@@ -146,7 +151,20 @@ function checkIfMoveIsAllowed(selectedTile) {
             //phase1 - move
             break
         case 'pawnMove':
-            console.log("trututu")
+
+           board.forEach((tilesrow)=>tilesrow.forEach((tile)=>{
+
+
+           }
+           ))
+
+
+
+            //x+1:  y-1 | y | y+1
+            //x:    y-1 |  y+1
+            //x11:  y-1 | y | y+1
+            // brak innego pionka board[selectedTile.dataset.x][selectedTile.dataset.y].pawn == null
+
         break
     }
 }
