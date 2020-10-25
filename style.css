@@ -46,8 +46,13 @@
 .active-tile {
   background-color: rgba(47, 190, 223, 0.693);
 }
+
+.game__pawn {
+  padding: 5px;
+  border-radius: 50%;
+}
 .active__pawn {
-  background-color: rgba(47, 190, 223, 0.693);
+  background-color: rgba(192, 255, 65, 0.761);
 }
 .level {
   display: block;
@@ -64,6 +69,14 @@
 }
 .level-3 {
   width: 50%;
+}
+
+.dome {
+  display: block;
+  height: 20px;
+  width: 35%;
+  border-radius: 50% 50% 0 0;
+  background-color: rgb(7, 4, 158);
 }
 /* player panel styling*/
 .player__panel {

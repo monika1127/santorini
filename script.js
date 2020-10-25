@@ -27,7 +27,7 @@ function createBoard() {
   for (let i = 0; i < 5; i++) {
     temp.push([]);
     for (let j = 0; j < 5; j++) {
-      temp[i].push({ x: i, y: j, level: 0, dome: false, pawn: null });
+      temp[i].push({ x: i, y: j, level: 0, pawn: null });
     }
   }
   board = temp;
@@ -50,10 +50,11 @@ function updateBoard() {
       i
         .map((j) => {
           return `<div data-x="${j.x}" data-y="${j.y}" class="tile">
-                ${j.pawn ? `<img class="game__pawn" id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]}" />` : ''}
+                ${j.pawn ? `<img class="game__pawn ${j.pawn.pawnId==choosenPawnId ? "active__pawn":""} " id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]}" />` : ''}
                 ${j.level === 1 ? `<div class="level level-1"></div>` : ''}
                 ${j.level === 2 ? `<div class="level level-2"></div><div class="level level-1"></div>` : ''}
                 ${j.level === 3 ? `<div class="level level-3"></div><div class="level level-2"></div><div class="level level-1"></div>` : ''}
+                ${j.level === 4 ? `<div class="dome"></div><div class="level level-3"></div><div class="level level-2"></div><div class="level level-1"></div>` : ''}
             </div>`;
         })
         .join("")
@@ -85,6 +86,7 @@ function displayGameInstruction(playerId, gamePhase) {
       instruction =
         "Phase 2: building <br>pick up one tile and build the block";
       break
+
   }
   instructionPanels.forEach(
     (panel) =>
@@ -141,11 +143,11 @@ function choosePawn() {
 
 function highlitPawn(e) {
   e.stopPropagation();
-  const pawnsOnBoard = gameContainer.querySelectorAll(".game__pawn");
-  pawnsOnBoard.forEach((pawn) => pawn.classList.remove("active__pawn"));
 
   pawns.forEach((pawn) => {
     if (pawn.pawnId == e.target.id && pawn.player == currentPlayerId) {
+      const pawnsOnBoard = gameContainer.querySelectorAll(".game__pawn");
+      pawnsOnBoard.forEach((pawn) => pawn.classList.remove("active__pawn"));
       e.target.classList.add("active__pawn");
       choosenPawnId = pawn.pawnId;
       gameContainer.addEventListener("mousemove", highlitTile)
@@ -172,9 +174,12 @@ function movePawn(e) {
     board[x][y].pawn = null
     board[newX][newY].pawn = pawns[choosenPawnId - 1]
     updateBoard()
+
+    //remove event listeners, go to next game phase - building, add new listeners for building phase
     gameContainer.removeEventListener("click", movePawn)
     displayGameInstruction(currentPlayerId, "buildBlock")
     gameContainer.addEventListener("click", buildBlock)
+    gamePhase = "building"
 
   }
 }
@@ -185,14 +190,20 @@ function buildBlock(e) {
   } else {
     const x = e.target.dataset.x
     const y = e.target.dataset.y
-    board[x][y].level++
+
+    if (board[x][y].level < 4) {
+      board[x][y].level++
+    } else {
+      displayGameInstruction(currentPlayerId, "moveNotPossible")
+    }
+    choosenPawnId = undefined
     updateBoard()
     gameContainer.removeEventListener("mousemove", highlitTile)
     gameContainer.removeEventListener("click", buildBlock)
     changePlayerId()
     displayGameInstruction(currentPlayerId, "movePawn");
-    choosePawn();
-
+    gamePhase = 'pawnMove'
+    choosePawn()
   }
 }
 
@@ -217,40 +228,32 @@ function checkIfMoveIsAllowed(selectedTile) {
     case "pawnMove":
       const pawnX = parseInt(pawns[choosenPawnId - 1].position.x);
       const pawnY = parseInt(pawns[choosenPawnId - 1].position.y);
-      if (board[tileX][tileY].pawn === null && (
-        board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY - 1) ||
-        board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == pawnY ||
-        board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY + 1) ||
-        board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY - 1) ||
-        board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY + 1) ||
-        board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY - 1) ||
-        board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY) ||
-        board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY + 1)
-      )) return true
+        if (board[tileX][tileY].pawn === null &&
+        verifyIfTileIsNextToPawn(tileX, tileY, pawnX, pawnY)&&
+        board[tileX][tileY].level - board[pawnX][pawnY].level<2)
+        return true
       break
 
+    case "building":
+      const pawnXb = parseInt(pawns[choosenPawnId - 1].position.x);
+      const pawnYb = parseInt(pawns[choosenPawnId - 1].position.y);
+      if (board[tileX][tileY].pawn === null && verifyIfTileIsNextToPawn(tileX, tileY, pawnXb, pawnYb)) return true
 
-
-
-
+      break
   }
 }
 
-// function movePawn(){
-//     dodaj komunikat dla graczy
-//     ruszamy pionkiem
-//     removeEventListener('click', movePawn)
-//     checkIfWin
-//     addEventListener('click', buildHouse)
-// }
+function verifyIfTileIsNextToPawn(tileX, tileY, pawnX, pawnY) {
+  if (board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY - 1) ||
+    board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == pawnY ||
+    board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY + 1) ||
+    board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY - 1) ||
+    board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY + 1) ||
+    board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY - 1) ||
+    board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY) ||
+    board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY + 1)) return true
+}
 
-// function buildHouse() {
-//     dodaj komunikat dla graczy
-//     budujemy
-//     removeEventListener('click', buildHouse)
-//     change currentPlayerId
-//     addEventListener('click', movePawn)
-// }
 
 function startGame() {
   if (!gameStarted) {
