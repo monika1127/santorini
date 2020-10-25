@@ -53,7 +53,7 @@ function updateBoard() {
                 ${j.pawn ? `<img class="game__pawn" id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]}" />` : ''}
                 ${j.level === 1 ? `<div class="level level-1"></div>` : ''}
                 ${j.level === 2 ? `<div class="level level-2"></div><div class="level level-1"></div>` : ''}
-                ${j.level === 3 ? `<div class="level level-3"></div><div class="level level-2"></div><div class="level level-1"></div>`` : ''}
+                ${j.level === 3 ? `<div class="level level-3"></div><div class="level level-2"></div><div class="level level-1"></div>` : ''}
             </div>`;
         })
         .join("")

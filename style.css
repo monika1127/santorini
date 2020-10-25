@@ -38,6 +38,10 @@
   height: 100%;
   border: 2px solid white;
   background-color: rgba(121, 194, 151, 0.82);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
 }
 .active-tile {
   background-color: rgba(47, 190, 223, 0.693);
@@ -45,7 +49,22 @@
 .active__pawn {
   background-color: rgba(47, 190, 223, 0.693);
 }
+.level {
+  display: block;
+  height: 20px;
+  background-color: white;
+}
 
+.level-1 {
+  width: 80%;
+  margin-bottom: 4px;
+}
+.level-2 {
+  width: 65%;
+}
+.level-3 {
+  width: 50%;
+}
 /* player panel styling*/
 .player__panel {
   margin: 0 30px;
@@ -81,20 +100,4 @@
 }
 .pawn-used {
   opacity: 0.3;
-}
-.level {
-  display: block;
-  height: 20px;
-  background-color: white;
-}
-
-.level-1 {
-  width: 80%;
-  margin-bottom: 4px;
-}
-.level-2 {
-  width: 65%;
-}
-.level-3 {
-  width: 50%;
 }
