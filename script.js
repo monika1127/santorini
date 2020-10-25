@@ -73,15 +73,20 @@ function displayGameInstruction(playerId, gamePhase) {
       break;
     case "movePawn":
       instruction =
-        "Phase 1: building <br>pick up one pawn and make a move - click on choosen tile";
+        "Phase 1: MOVING <br>pick up one pawn and make a move - click on choosen tile";
       break;
     case "tileOccupated":
       instruction = "THIS TILE IS ALREADY TAKEN - CHOOSE THE EMPTY ONE";
       break;
 
      case "moveNotPossible":
-      nstruction = "THIS MOVE IS NOT POSSIBLE - CHOOSE ANOTHER ONE";
+      instruction = "THIS MOVE IS NOT POSSIBLE - CHOOSE ANOTHER ONE";
      break
+
+     case "buildBlock":
+      instruction =
+      "Phase 2: building <br>pick up one tile and build the block";
+      break
   }
   instructionPanels.forEach(
     (panel) =>
@@ -145,10 +150,10 @@ function highlitPawn(e) {
     if (pawn.pawnId == e.target.id && pawn.player == currentPlayerId) {
       e.target.classList.add("active__pawn");
       choosenPawnId = pawn.pawnId;
+      gameContainer.addEventListener("mousemove", highlitTile)
     }
   });
 
-  gameContainer.addEventListener("mousemove", highlitTile)
   gameContainer.addEventListener("click", movePawn)
   gamePhase = 'pawnMove'
 }
@@ -159,21 +164,32 @@ function movePawn(e){
   if (!checkIfMoveIsAllowed(e.target)) {
     displayGameInstruction(currentPlayerId, "moveNotPossible");
   } else {
-
     const x = pawns[choosenPawnId-1].position.x
     const y = pawns[choosenPawnId-1].position.y
     const newX = e.target.dataset.x
     const newY =e.target.dataset.y
-//pown array update
+    //pown array update
     pawns[choosenPawnId-1].position.x= newX
     pawns[choosenPawnId-1].position.y= newY
-//board update 1.remove pawn 2.add pawn
+    //board update 1.remove pawn 2.add pawn
     board[x][y].pawn=null
     board[newX][newY].pawn = pawns[choosenPawnId-1]
     updateBoard()
+    gameContainer.removeEventListener("click", movePawn)
+    displayGameInstruction(currentPlayerId, "buildBlock")
+    gamePhase = "building";
+    gameContainer.addEventListener("click", buildBlock)
 
 }}
 
+function buildBlock(e){
+  if (!checkIfMoveIsAllowed(e.target)) {
+    displayGameInstruction(currentPlayerId, "moveNotPossible");
+  } else {
+
+  }
+
+}
 
 function highlitTile(e) {
   let activeTile = e.target;
