@@ -53,9 +53,8 @@ function updateBoard() {
             return `<div data-x="${j.x}" data-y="${j.y}" class="tile"></div>`;
           } else {
             return `<div data-x="${j.x}" data-y="${j.y}" class="tile">
-                <img class="game__pawn" id="${j.pawn.pawnId}" src="${
-              pawnSorce[j.pawn.pawnId]
-            }" />
+                <img class="game__pawn" id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]
+              }" />
             </div>`;
           }
         })
@@ -79,6 +78,10 @@ function displayGameInstruction(playerId, gamePhase) {
     case "tileOccupated":
       instruction = "THIS TILE IS ALREADY TAKEN - CHOOSE THE EMPTY ONE";
       break;
+
+     case "moveNotPossible":
+      nstruction = "THIS MOVE IS NOT POSSIBLE - CHOOSE ANOTHER ONE";
+     break
   }
   instructionPanels.forEach(
     (panel) =>
@@ -96,7 +99,7 @@ function placePawns(event) {
     const { x, y } = tile.dataset;
     const pawn = {
       pawnId: pawnPlacementCounter,
-      postion: { x, y },
+      position: { x, y },
       player: currentPlayerId,
     };
     pawns.push(pawn);
@@ -130,9 +133,11 @@ function placedPawnHighlit() {
 function choosePawn() {
   const pawnsOnBoard = gameContainer.querySelectorAll(".game__pawn");
   pawnsOnBoard.forEach((pawn) => pawn.addEventListener("click", highlitPawn));
+
 }
 
 function highlitPawn(e) {
+  e.stopPropagation();
   const pawnsOnBoard = gameContainer.querySelectorAll(".game__pawn");
   pawnsOnBoard.forEach((pawn) => pawn.classList.remove("active__pawn"));
 
@@ -143,8 +148,32 @@ function highlitPawn(e) {
     }
   });
 
+  gameContainer.addEventListener("mousemove", highlitTile)
+  gameContainer.addEventListener("click", movePawn)
   gamePhase = 'pawnMove'
 }
+
+
+function movePawn(e){
+
+  if (!checkIfMoveIsAllowed(e.target)) {
+    displayGameInstruction(currentPlayerId, "moveNotPossible");
+  } else {
+
+    const x = pawns[choosenPawnId-1].position.x
+    const y = pawns[choosenPawnId-1].position.y
+    const newX = e.target.dataset.x
+    const newY =e.target.dataset.y
+//pown array update
+    pawns[choosenPawnId-1].position.x= newX
+    pawns[choosenPawnId-1].position.y= newY
+//board update 1.remove pawn 2.add pawn
+    board[x][y].pawn=null
+    board[newX][newY].pawn = pawns[choosenPawnId-1]
+    updateBoard()
+
+}}
+
 
 function highlitTile(e) {
   let activeTile = e.target;
@@ -156,6 +185,7 @@ function highlitTile(e) {
   );
 }
 
+
 function checkIfMoveIsAllowed(selectedTile) {
   const { x: tileX, y: tileY } = selectedTile.dataset;
   //pawn placement phase
@@ -164,8 +194,21 @@ function checkIfMoveIsAllowed(selectedTile) {
       return board[tileX][tileY].pawn === null;
     //phase1 - move
     case "pawnMove":
-      const { x: pawnX, y: pawnY } = pawns[choosenPawnId];
-      // if ()
+      const pawnX = parseInt(pawns[choosenPawnId - 1].position.x);
+      const pawnY = parseInt(pawns[choosenPawnId - 1].position.y);
+      if (board[tileX][tileY].pawn === null && (
+        board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY - 1) ||
+        board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == pawnY ||
+        board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY + 1) ||
+          board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY - 1) ||
+          board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY + 1) ||
+          board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY - 1) ||
+          board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY) ||
+          board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY + 1)
+        )) return true
+
+
+
 
 
 
