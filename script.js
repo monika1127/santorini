@@ -49,14 +49,12 @@ function updateBoard() {
     .map((i) =>
       i
         .map((j) => {
-          if (j.pawn === null) {
-            return `<div data-x="${j.x}" data-y="${j.y}" class="tile"></div>`;
-          } else {
-            return `<div data-x="${j.x}" data-y="${j.y}" class="tile">
-                <img class="game__pawn" id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]
-              }" />
+          return `<div data-x="${j.x}" data-y="${j.y}" class="tile">
+                ${j.pawn ? `<img class="game__pawn" id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]}" />` : ''}
+                ${j.level === 1 ? `<div class="level level-1"></div>` : ''}
+                ${j.level === 2 ? `<div class="level level-2"></div><div class="level level-1"></div>` : ''}
+                ${j.level === 3 ? `<div class="level level-3"></div><div class="level level-2"></div><div class="level level-1"></div>`` : ''}
             </div>`;
-          }
         })
         .join("")
     )
@@ -79,13 +77,13 @@ function displayGameInstruction(playerId, gamePhase) {
       instruction = "THIS TILE IS ALREADY TAKEN - CHOOSE THE EMPTY ONE";
       break;
 
-     case "moveNotPossible":
+    case "moveNotPossible":
       instruction = "THIS MOVE IS NOT POSSIBLE - CHOOSE ANOTHER ONE";
-     break
+      break
 
-     case "buildBlock":
+    case "buildBlock":
       instruction =
-      "Phase 2: building <br>pick up one tile and build the block";
+        "Phase 2: building <br>pick up one tile and build the block";
       break
   }
   instructionPanels.forEach(
@@ -159,36 +157,43 @@ function highlitPawn(e) {
 }
 
 
-function movePawn(e){
-
+function movePawn(e) {
   if (!checkIfMoveIsAllowed(e.target)) {
     displayGameInstruction(currentPlayerId, "moveNotPossible");
   } else {
-    const x = pawns[choosenPawnId-1].position.x
-    const y = pawns[choosenPawnId-1].position.y
+    const x = pawns[choosenPawnId - 1].position.x
+    const y = pawns[choosenPawnId - 1].position.y
     const newX = e.target.dataset.x
-    const newY =e.target.dataset.y
+    const newY = e.target.dataset.y
     //pown array update
-    pawns[choosenPawnId-1].position.x= newX
-    pawns[choosenPawnId-1].position.y= newY
+    pawns[choosenPawnId - 1].position.x = newX
+    pawns[choosenPawnId - 1].position.y = newY
     //board update 1.remove pawn 2.add pawn
-    board[x][y].pawn=null
-    board[newX][newY].pawn = pawns[choosenPawnId-1]
+    board[x][y].pawn = null
+    board[newX][newY].pawn = pawns[choosenPawnId - 1]
     updateBoard()
     gameContainer.removeEventListener("click", movePawn)
     displayGameInstruction(currentPlayerId, "buildBlock")
-    gamePhase = "building";
     gameContainer.addEventListener("click", buildBlock)
 
-}}
+  }
+}
 
-function buildBlock(e){
+function buildBlock(e) {
   if (!checkIfMoveIsAllowed(e.target)) {
     displayGameInstruction(currentPlayerId, "moveNotPossible");
   } else {
+    const x = e.target.dataset.x
+    const y = e.target.dataset.y
+    board[x][y].level++
+    updateBoard()
+    gameContainer.removeEventListener("mousemove", highlitTile)
+    gameContainer.removeEventListener("click", buildBlock)
+    changePlayerId()
+    displayGameInstruction(currentPlayerId, "movePawn");
+    choosePawn();
 
   }
-
 }
 
 function highlitTile(e) {
@@ -216,24 +221,18 @@ function checkIfMoveIsAllowed(selectedTile) {
         board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY - 1) ||
         board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == pawnY ||
         board[tileX][tileY].x == (pawnX + 1) && board[tileX][tileY].y == (pawnY + 1) ||
-          board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY - 1) ||
-          board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY + 1) ||
-          board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY - 1) ||
-          board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY) ||
-          board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY + 1)
-        )) return true
+        board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY - 1) ||
+        board[tileX][tileY].x == pawnX && board[tileX][tileY].y == (pawnY + 1) ||
+        board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY - 1) ||
+        board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY) ||
+        board[tileX][tileY].x == (pawnX - 1) && board[tileX][tileY].y == (pawnY + 1)
+      )) return true
+      break
 
 
 
 
 
-
-      //x+1:  y-1 | y | y+1
-      //x:    y-1 |  y+1
-      //x11:  y-1 | y | y+1
-      // brak innego pionka board[selectedTile.dataset.x][selectedTile.dataset.y].pawn == null
-
-      break;
   }
 }
 
