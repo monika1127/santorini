@@ -49,7 +49,7 @@ function updateBoard() {
     .map((i) =>
       i
         .map((j) => {
-          return `<div data-x="${j.x}" data-y="${j.y}" class="tile">
+          return `<div data-x="${j.x}" data-y="${j.y}" class="tile ${j.pawn&&j.level===3 ? "winner":""}">
                 ${j.pawn ? `<img class="game__pawn ${j.pawn.pawnId == choosenPawnId ? "active__pawn" : ""} " id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]}" />` : ''}
                 ${j.level === 1 ? `<div class="level level-1"></div>` : ''}
                 ${j.level === 2 ? `<div class="level level-2"></div><div class="level level-1"></div>` : ''}
@@ -68,27 +68,32 @@ function displayGameInstruction(playerId, gamePhase) {
   switch (gamePhase) {
     case "placePawn":
       instruction =
-        "Place your pawn on an empty space of the board - click on choosen tile";
+        "Phase 0: <br>PLACE THE PAWN <br><br>Place your pawn on an empty space of the board <br><br> click on choosen tile";
       break;
     case "movePawn":
       instruction =
-        "Phase 1: MOVING <br>pick up one pawn and make a move - click on choosen tile";
+        "Phase 1: MOVING <br><br>Pick up one pawn and make a move <br><br>click on choosen tile";
       break;
     case "tileOccupated":
-      instruction = "THIS TILE IS ALREADY TAKEN - CHOOSE THE EMPTY ONE";
+      instruction = "THIS TILE IS ALREADY TAKEN <br><br> CHOOSE THE OTHER ONE";
       break;
 
     case "moveNotPossible":
-      instruction = "THIS MOVE IS NOT POSSIBLE - CHOOSE ANOTHER ONE";
+      instruction = "THIS MOVE IS NOT POSSIBLE <br><br> CHOOSE THE OTHER ONE";
       break
 
     case "buildBlock":
       instruction =
-        "Phase 2: building <br>pick up one tile and build the block";
+        "Phase 2: BUILDING <br><br>Pick up one tile for build the block";
       break
-    default:
-      instruction = ""
-      break
+      case "winning":
+        instruction =
+          "YOY WIN!";
+        break
+        case "gameOver":
+          instruction =
+            "";
+          break
   }
   instructionPanels.forEach(
     (panel) =>
@@ -160,6 +165,9 @@ function highlitPawn(e) {
   gamePhase = 'pawnMove'
 }
 
+function chceckIfPawnsAreNotBlocked()
+
+//winning conditions if any pawn have no possible move game over if no make a choosen move
 
 function movePawn(e) {
 
@@ -173,6 +181,8 @@ function movePawn(e) {
     const newX = target.dataset.x
     const newY = target.dataset.y
 
+
+
     //pown array update
     pawns[choosenPawnId - 1].position.x = newX
     pawns[choosenPawnId - 1].position.y = newY
@@ -182,9 +192,9 @@ function movePawn(e) {
     board[newX][newY].pawn = pawns[choosenPawnId - 1]
     updateBoard()
 
-    //winning conditions  if true: game over if false: go to next game phase - building, remove old and add new listeners for building phase
+    //winning conditions if pown is on 3rd level block:game over if no: go to next game phase - building, remove old and add new listeners for building phase
     if (board[newX][newY].level == 3) {
-      gameOver()
+      gameOver(target)
     } else {
       gameContainer.removeEventListener("click", movePawn)
       displayGameInstruction(currentPlayerId, "buildBlock")
@@ -193,6 +203,16 @@ function movePawn(e) {
     }
   }
 }
+
+function gameOver(winningBlock) {
+  console.log(choosenPawnId)
+  displayGameInstruction(currentPlayerId, "winning")
+  gameContainer.removeEventListener("click", movePawn)
+  gameContainer.removeEventListener("mousemove", highlitTile)
+  console.log(winningBlock)
+  winningBlock.classList.add('winner')
+}
+
 
 function buildBlock(e) {
   let target
@@ -288,8 +308,8 @@ function startGame() {
 }
 
 function reStartGame() {
+  displayGameInstruction(currentPlayerId, "gameOver")
   pawns = [];
-  player1Active = true;
   gameStarted = false;
   pawnPlacementCounter = 0;
   currentPlayerId = 0;
@@ -300,13 +320,9 @@ function reStartGame() {
     pawn.classList.remove("pawn-used");
     pawn.classList.remove("pawn-active");
   });
-  createBoard();
-  drawBoard();
+  startGame()
 }
 
 
-function gameOver(winningBlock) {
-
-}
 
 startGameButton.addEventListener("click", startGame);
