@@ -49,7 +49,7 @@ function updateBoard() {
     .map((i) =>
       i
         .map((j) => {
-          return `<div data-x="${j.x}" data-y="${j.y}" class="tile ${j.pawn&&j.level===3 ? "winner":""}">
+          return `<div data-x="${j.x}" data-y="${j.y}" class="tile ${j.pawn && j.level === 3 ? "winner" : ""}">
                 ${j.pawn ? `<img class="game__pawn ${j.pawn.pawnId == choosenPawnId ? "active__pawn" : ""} " id="${j.pawn.pawnId}" src="${pawnSorce[j.pawn.pawnId]}" />` : ''}
                 ${j.level === 1 ? `<div class="level level-1"></div>` : ''}
                 ${j.level === 2 ? `<div class="level level-2"></div><div class="level level-1"></div>` : ''}
@@ -86,14 +86,18 @@ function displayGameInstruction(playerId, gamePhase) {
       instruction =
         "Phase 2: BUILDING <br><br>Pick up one tile for build the block";
       break
-      case "winning":
-        instruction =
-          "YOY WIN!";
-        break
-        case "gameOver":
-          instruction =
-            "";
-          break
+    case "winning":
+      instruction =
+        "YOU WIN!";
+      break
+    case "defeat":
+      instruction =
+        "YOU DON'T HAVE ANY POSSIBLE MOVE! <br><br>YOU LOST";
+      break
+    case "gameOver":
+      instruction =
+        "";
+      break
   }
   instructionPanels.forEach(
     (panel) =>
@@ -165,14 +169,48 @@ function highlitPawn(e) {
   gamePhase = 'pawnMove'
 }
 
-function chceckIfPawnsAreNotBlocked()
+function chceckIfPawnsAreBlocked() {
+  let possibleMovesCounter = 0
+  pawns.forEach((pawn) => {
+    if (pawn.player != currentPlayerId) return
+    const pawnX = parseInt(pawn.position.x)
+    const pawnY = parseInt(pawn.position.y)
+    let tileXmin = pawnX === 0 ? pawnX : pawnX - 1
+    let tileXmax = pawnX === 4 ? pawnX : pawnX + 1
+    let tileYmin = pawnY === 0 ? pawnY : pawnY - 1
+    let tileYmax = pawnY === 4 ? pawnY : pawnY + 1
 
-//winning conditions if any pawn have no possible move game over if no make a choosen move
+    if (
+      (board[tileXmin][tileYmin].pawn === null && board[tileXmin][tileYmin].level - board[pawnX][pawnY].level < 2) ||
+      (board[tileXmin][pawnY].pawn === null && board[tileXmin][pawnY].level - board[pawnX][pawnY].level < 2) ||
+      (board[tileXmin][tileYmax].pawn === null && board[tileXmin][tileYmax].level - board[pawnX][pawnY].level < 2) ||
+      (board[pawnX][tileYmin].pawn === null && board[pawnX][tileYmin].level - board[pawnX][pawnY].level < 2) ||
+      (board[pawnX][tileYmax].pawn === null && board[pawnX][tileYmax].level - board[pawnX][pawnY].level < 2) ||
+      (board[tileXmax][tileYmin].pawn === null && board[tileXmax][tileYmin].level - board[pawnX][pawnY].level < 2) ||
+      (board[tileXmax][pawnY].pawn === null && board[tileXmax][pawnY].level - board[pawnX][pawnY].level < 2) ||
+      (board[tileXmax][tileYmax].pawn === null && board[tileXmax][tileYmax].level - board[pawnX][pawnY].level < 2)
+    ) return possibleMovesCounter++
+  })
+  console.log(possibleMovesCounter)
+  if (possibleMovesCounter === 0) {
+    console.log('foo')
+
+    displayGameInstruction(currentPlayerId, "defeat")
+    gameContainer.removeEventListener("click", movePawn)
+    gameContainer.removeEventListener("mousemove", highlitTile)
+    return true
+  }
+  return false
+
+}
+
+// winning conditions if any pawn have no possible move game over if no make a choosen move
 
 function movePawn(e) {
-
- let target
-  e.target.classList.contains('tile')? target=e.target: target = e.target.parentElement
+  e.stopPropagation();
+  if (chceckIfPawnsAreBlocked()) return;
+  let target
+  e.target.classList.contains('tile') ? target = e.target : target = e.target.parentElement
   if (!checkIfMoveIsAllowed(target)) {
     displayGameInstruction(currentPlayerId, "moveNotPossible");
   } else {
@@ -194,7 +232,7 @@ function movePawn(e) {
 
     //winning conditions if pown is on 3rd level block:game over if no: go to next game phase - building, remove old and add new listeners for building phase
     if (board[newX][newY].level == 3) {
-      gameOver(target)
+      gameOverWin(target)
     } else {
       gameContainer.removeEventListener("click", movePawn)
       displayGameInstruction(currentPlayerId, "buildBlock")
@@ -202,21 +240,24 @@ function movePawn(e) {
       gamePhase = "building"
     }
   }
+
 }
 
-function gameOver(winningBlock) {
-  console.log(choosenPawnId)
+function gameOverWin(winningBlock) {
+
   displayGameInstruction(currentPlayerId, "winning")
   gameContainer.removeEventListener("click", movePawn)
   gameContainer.removeEventListener("mousemove", highlitTile)
-  console.log(winningBlock)
   winningBlock.classList.add('winner')
 }
+// function gameOverDefeat(){
 
+// }
 
 function buildBlock(e) {
+  e.stopPropagation();
   let target
-  e.target.classList.contains('tile')? target=e.target: target = e.target.parentElement
+  e.target.classList.contains('tile') ? target = e.target : target = e.target.parentElement
   if (!checkIfMoveIsAllowed(target)) {
     displayGameInstruction(currentPlayerId, "moveNotPossible");
   } else {
@@ -257,7 +298,7 @@ function checkIfMoveIsAllowed(selectedTile) {
     case "pawnPlacement":
       return board[tileX][tileY].pawn === null;
 
-      //phase1 - move
+    //phase1 - move
     case "pawnMove":
       const pawnX = parseInt(pawns[choosenPawnId - 1].position.x);
       const pawnY = parseInt(pawns[choosenPawnId - 1].position.y);
@@ -267,7 +308,7 @@ function checkIfMoveIsAllowed(selectedTile) {
         return true
       break
 
-      //phase2 - building
+    //phase2 - building
     case "building":
       const pawnXb = parseInt(pawns[choosenPawnId - 1].position.x);
       const pawnYb = parseInt(pawns[choosenPawnId - 1].position.y);
